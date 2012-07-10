@@ -1,0 +1,22 @@
+#Fibonacci Sequence
+
+def genFibs(n):
+    f = open("fib.txt", "r+a+")
+    fibs = f.read()
+    fibs = fibs.splitlines()
+    while len(fibs) < n:
+        f1 = fibs[len(fibs)-1]
+        f2 = fibs[len(fibs)-2]
+        fibs.append(int(f1)+int(f2))
+        f.write("\n" + str(int(f1)+int(f2)))
+    f.close()
+    return fibs[len(fibs)-1]
+
+def findFib():
+    f = open("fib.txt")
+    fibs = f.read()
+    fibs = fibs.splitlines()
+    fibs = filter(lambda x: len(x) == 4, fibs)
+    return fibs[0]
+
+genFibs(10000)
