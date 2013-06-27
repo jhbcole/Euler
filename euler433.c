@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <pthread.h>
+
 
 long long sum = 0;
 long long s2 = 0;
@@ -31,7 +33,7 @@ s(int n){
       else
         sum += es;
     }
-    printf("%d\n",x);
+    printf("%d, %llu\n",x,sum);
   }
 }
 
