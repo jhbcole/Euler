@@ -3,46 +3,63 @@
 #include <signal.h>
 #include <pthread.h>
 
+#define N 5000000
 
-long long sum = 0;
-long long s2 = 0;
-
+int* sum; 
 
 void sigint_handler(int sig){
-  printf("s2 %llu, sum %llu\n", s2, sum);
+  int i;
+  unsigned long long tot = 0;
+  for(i = 0; i < N; i++)
+    tot += sum[i];
+  printf("total %llu\n", tot);
   exit(0);
 }
 
 
-int euclid_steps(int x, int y, int s){
-  if(y == 0)
-    return s;
-  else
-    return euclid_steps(y, x % y, s+1);
+void* euclid_steps(void* xp){
+  int x = *(int *)xp;
+  pthread_detach(pthread_self());
+  int y,s = 0,tot = 0;
+  for(y = 1; y<= N; y++){
+    int ytmp = y;
+    int xtmp = x;
+    while(ytmp != 0){
+      int tmp = xtmp;
+      xtmp = ytmp;
+      ytmp = tmp % ytmp;
+      s++;
+    }
+    tot += s;
+  }
+  sum[x] = tot;
+  free(xp);
+  return NULL;
 }
 
-s(int n){
+unsigned long long s(int n){
   int x,y;
+  pthread_t tid;
+  int es, es2;
   for(x = 1; x <= n; x++){
-    for(y = 1; y <= n; y++){
-      int es = euclid_steps(x,y,0);
-      if(sum + es < 0){
-        s2++;
-        sum = 0;
-      }
-      else
-        sum += es;
-    }
-    printf("%d, %llu\n",x,sum);
+    int *xp = malloc(sizeof(int));
+    *xp = x;
+    pthread_create(&tid, NULL, euclid_steps, (void *)xp);
   }
+  int i;
+  unsigned long long tot = 0;
+  for(i = 0; i < N; i++)
+    tot += sum[i];
+  return tot;
 }
 
 int main(){
+  sum = calloc(5000000,sizeof(int));
   if(signal(SIGINT, sigint_handler) < 0){
     printf("SIGNAL FAILED!\n");
     exit(0);
   }
-  s(5000000);
-  printf("S2: %llu, SUM: %llu\n", s2, sum);
+  unsigned long long total = s(10);
+  printf("total: %llu\n", total);
   return 0;
 }
