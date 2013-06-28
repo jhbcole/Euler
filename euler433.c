@@ -3,6 +3,8 @@
 #include <signal.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <time.h>
+#include <sys/types.h>
 
 #define N 5000000
 #define N2 50
@@ -78,9 +80,12 @@ int main(){
     printf("SIGNAL FAILED!\n");
     exit(0);
   }
-
+  time_t t1, t2;
+  (void) time(&t1);
   unsigned long long total = s(N2);
+  (void) time(&t2);
   printf("total: %llu\n", total);
+  printf("time taken: %d\n", (int) t2 - t1);
   pthread_mutex_destroy(&lock);
   free(sum);
   return 0;
