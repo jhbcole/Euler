@@ -7,7 +7,7 @@
 #include <sys/types.h>
 
 #define N 5000000
-#define N2 50
+#define N2 100
 
 pthread_mutex_t lock;
 unsigned long long* sum; 
