@@ -7,7 +7,7 @@
 #include <sys/types.h>
 
 #define N 5000000
-#define N2 100
+#define N2 10
 
 pthread_mutex_t lock;
 unsigned long long* sum; 
@@ -28,6 +28,10 @@ void* euclid_steps(void* xp){
   int y,s = 0;
   unsigned long long tot = 0;
   for(y = 1; y<= N; y++){
+    //if(x == y){
+    //  tot += (unsigned long long)1;
+    //  continue;
+    //}
     int ytmp = y;
     int xtmp = x;
     while(ytmp != 0){
