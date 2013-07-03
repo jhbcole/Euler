@@ -6,47 +6,46 @@
 #include <time.h>
 #include <sys/types.h>
 
+#define ULL(x) ((unsigned long long)x)
 #define N 5000000
-#define N2 10
+#define N2 1000
 
 pthread_mutex_t lock;
-unsigned long long* sum; 
 
 void sigint_handler(int sig){
-  int i;
-  unsigned long long tot = 0;
-  for(i = 0; i < N2; i++)
-    tot += sum[i];
-  printf("total %llu\n", tot);
   exit(0);
 }
 
-
-void* euclid_steps(void* xp){
+unsigned long long euclid_steps(void* xp){
   int x = *(int *)xp;
-  //pthread_detach(pthread_self());
   int y,s = 0;
   unsigned long long tot = 0;
   for(y = 1; y<= N; y++){
-    //if(x == y){
-    //  tot += (unsigned long long)1;
-    //  continue;
-    //}
-    int ytmp = y;
-    int xtmp = x;
-    while(ytmp != 0){
-      int tmp = xtmp;
-      xtmp = ytmp;
-      ytmp = tmp % ytmp;
-      s++;
+    if(x % y == 0){
+      tot+= ULL(1);
     }
-    tot += (unsigned long long)s;
+    else if(x % y == 1){
+      tot+= ULL(2);
+    }
+    else{
+      s = 0;
+      int ytmp = y;
+      int xtmp = x;
+      while(ytmp != 0){ 
+        int tmp = xtmp;
+        xtmp = ytmp;
+        ytmp = tmp % ytmp;
+        s++;
+      }
+      tot += ULL(s);
+      s = 0;
+    }
   }
-  pthread_mutex_lock(&lock);
-  sum[(*(int *)xp)] = tot;
-  pthread_mutex_unlock(&lock);
+  //pthread_mutex_lock(&lock);
+  //sum[(*(int *)xp)] = tot;
+  //pthread_mutex_unlock(&lock);
   free(xp);
-  return NULL;
+  return tot;
 }
 
 unsigned long long s(int n){
@@ -56,41 +55,84 @@ unsigned long long s(int n){
   for(x = 1; x <= n; x++){
     int *xp = malloc(sizeof(int));
     *xp = x;
-    pthread_create(&tid[x-1], NULL, euclid_steps, (void *)xp);
+    pthread_create(&tid[x-1], NULL, (void *)euclid_steps, (void *)xp);
   }
   int i;
+  unsigned long long tot = 0;
   for(i = 0; i < n; i++){
-    if(pthread_join(tid[i], NULL) != 0){
+    unsigned long long t = 0;
+    if(pthread_join(tid[i], (void *)&t) != 0){
       printf("PTHREAD JOIN ERROR!");
       exit(0);
     }
+    if(tot + ULL(t) < ULL(0)){
+      printf("OVERFLOW!\n");
+    }
+    //printf("%d, %llu\n", i+1, t);
+    tot += ULL(t);
+  } 
+  return tot;
+}
+
+int euclid(int x, int y){
+  int s = 0;
+  if(x % y == 0){
+    return 1;
   }
-  unsigned long long tot = 0;
-  for(i = 0; i < n; i++){ 
-    tot += (unsigned long long)sum[i];
-    //printf("\t %llu \t %llu\n", sum[i], tot);
+  if(y % x == 0){
+    return 2;
+  }
+  if(x==1)
+    return 2;
+  if(y + 1 == x)
+    return 2;
+  if(x + 1 == y)
+    return 3;
+  while(y != 0){
+    int tmp = x;
+    x = y;
+    y = x % y;
+    s++;
+  }
+  return s;
+}
+
+inline int sum(int* l,int n){
+  int i;
+  int sum = 0;
+  for(i = 0; i < n; i++){
+    sum += l[i];
+  }
+  return sum;
+}
+
+unsigned long long s2(int n){
+  unsigned long long tot = ULL(0);
+  int x,y;
+  for(x = 1; x <= n; x++){
+    int l[x];
+    for(y = x+1; y<=2*x; y++){
+      l[y%x] = euclid(x,y);
+    }
+    tot += ULL(sum(l,x))*ULL((N/x)) + ULL(sum(l,N%x+1))-ULL(l[0])-ULL((2*x-1));
   }
   return tot;
 }
 
+
 int main(){
-  printf("%llu, %d\n",(unsigned long long)-1, sizeof(unsigned long long));
-
-  pthread_mutex_init(&lock, NULL);
-
-  sum = malloc(N2*sizeof(unsigned long long));
-
   if(signal(SIGINT, sigint_handler) < 0){
     printf("SIGNAL FAILED!\n");
     exit(0);
   }
+  printf("N2: %d\n", N2);
   time_t t1, t2;
   (void) time(&t1);
-  unsigned long long total = s(N2);
+  unsigned long long total = s2(N2);
   (void) time(&t2);
+
   printf("total: %llu\n", total);
-  printf("time taken: %d\n", (int) t2 - t1);
-  pthread_mutex_destroy(&lock);
-  free(sum);
+  printf("time taken: %d\n", (int)(t2 - t1));
+
   return 0;
 }
