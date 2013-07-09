@@ -8,7 +8,7 @@
 
 #define ULL(x) ((unsigned long long)x)
 #define N 5000000
-#define N2 1000
+#define N2 20000
 
 pthread_mutex_t lock;
 
@@ -75,35 +75,33 @@ unsigned long long s(int n){
 }
 
 int euclid(int x, int y){
-  int s = 0;
-  if(x % y == 0){
+  if(x % y == 0)
     return 1;
-  }
-  if(y % x == 0){
+  if(y % x == 0)
     return 2;
-  }
   if(x==1)
     return 2;
   if(y + 1 == x)
     return 2;
   if(x + 1 == y)
     return 3;
+  int s = 0;
   while(y != 0){
     int tmp = x;
     x = y;
-    y = x % y;
+    y = tmp % y;
     s++;
   }
   return s;
 }
 
-inline int sum(int* l,int n){
+inline unsigned long long sum(int* l,int n){
   int i;
   int sum = 0;
   for(i = 0; i < n; i++){
     sum += l[i];
   }
-  return sum;
+  return ULL(sum);
 }
 
 unsigned long long s2(int n){
@@ -114,7 +112,8 @@ unsigned long long s2(int n){
     for(y = x+1; y<=2*x; y++){
       l[y%x] = euclid(x,y);
     }
-    tot += ULL(sum(l,x))*ULL((N/x)) + ULL(sum(l,N%x+1))-ULL(l[0])-ULL((2*x-1));
+    unsigned long long t = sum(l,x)*ULL((N/x)) + sum(l,(N%x)+1)-ULL(l[0])-ULL((2*x-1));
+    tot += t;
   }
   return tot;
 }

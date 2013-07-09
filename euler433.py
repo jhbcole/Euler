@@ -66,8 +66,9 @@ def fastS(n):
     #print x,t
   return tot
 
-s = fastS(1000)
-print 1000,s
+N2 = 1000
+s = fastS(N2)
+print N2,s
       
 
 #main()
